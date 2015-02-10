@@ -41,5 +41,5 @@ gpl <- as.data.table(dbGetQuery(geo_con, "SELECT gpl.gpl, gpl.manufacturer, gpl.
 gse_gpl <- as.data.table(dbGetQuery(geo_con, "SELECT gse_gpl.gse, gse_gpl.gpl FROM gse_gpl"))
 
 q2<-merge(x = merge(x = gse, y = gse_gpl, by = "gse"), y = gpl, by = "gpl")[title %like% "HCV"][contact %like% "Yale"][manufacturer %like% "Illumina"]
-
+q2$contact<-NULL
 ```
