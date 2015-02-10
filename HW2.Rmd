@@ -1,0 +1,45 @@
+---
+title: "HW2"
+output: html_document
+---
+
+#Load the GEOmetadb library
+```{r}
+suppressMessages(library(GEOmetadb))
+```
+
+#Download the GEO database
+```{r}
+if(!file.exists("GEOmetadb.sqlite"))
+{
+  # Downloads database only if it's not done already
+  getSQLiteFile()
+}
+```
+
+#Query the database structure (table names)
+```{r}
+geo_con <- dbConnect(SQLite(), 'GEOmetadb.sqlite')
+dbGetQuery(geo_con, "SELECT name FROM sqlite_master WHERE type='table';")
+```
+
+#Use the GEOmetabd package to find all HCV gene expression data using the Illumina platform submitted by an investigator at Yale
+```{r}
+q1<-dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.description FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j JOIN gpl ON j.gpl=gpl.gpl WHERE gse.title LIKE '%HCV%' AND gpl.manufacturer LIKE '%Illumina%' AND gse.contact LIKE '%Yale%'")
+```
+
+#Repeat using data.table package
+Load data.table
+```{r}
+suppressMessages(library(data.table))
+```
+
+Get data with data.table and query
+```{r}
+gse <- as.data.table(dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gse.contact FROM gse"))
+gpl <- as.data.table(dbGetQuery(geo_con, "SELECT gpl.gpl, gpl.manufacturer, gpl.description FROM gpl"))
+gse_gpl <- as.data.table(dbGetQuery(geo_con, "SELECT gse_gpl.gse, gse_gpl.gpl FROM gse_gpl"))
+
+q2<-merge(x = merge(x = gse, y = gse_gpl, by = "gse"), y = gpl, by = "gpl")[title %like% "HCV"][contact %like% "Yale"][manufacturer %like% "Illumina"]
+
+```
